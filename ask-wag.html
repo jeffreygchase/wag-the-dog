@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ask Wag — free dog-care chat</title>
+<style>
+  :root{
+    --paper:#F5F0E6; --paper-2:#EFE8D8; --ink:#26211C; --ink-soft:#4A4139;
+    --taupe:#8C8375; --line:#DDD3C0; --pine:#2F4A3A; --pine-deep:#22392C;
+    --gold:#C68A2E; --gold-soft:#E7C583; --card:#FBF8F1; --good:#2F7D52;
+    --alert:#B23A2E; --alert-bg:#F7E7E2;
+    --shadow:0 1px 2px rgba(38,33,28,.06), 0 14px 34px -20px rgba(38,33,28,.34);
+  }
+  @media (prefers-color-scheme:dark){
+    :root{ --paper:#141210; --paper-2:#1C1815; --ink:#F1EADC; --ink-soft:#C9BFAE;
+      --taupe:#9A9082; --line:#33291F; --pine:#7FB093; --pine-deep:#A6C9B2;
+      --gold:#E2AE56; --gold-soft:#E2AE56; --card:#211B15; --good:#7FB093;
+      --alert:#E88C7D; --alert-bg:#3A1F1A;
+      --shadow:0 1px 2px rgba(0,0,0,.35), 0 18px 44px -22px rgba(0,0,0,.7); }
+  }
+  :root[data-theme="light"]{ --paper:#F5F0E6;--paper-2:#EFE8D8;--ink:#26211C;--ink-soft:#4A4139;--taupe:#8C8375;--line:#DDD3C0;--pine:#2F4A3A;--pine-deep:#22392C;--gold:#C68A2E;--gold-soft:#E7C583;--card:#FBF8F1;--good:#2F7D52;--alert:#B23A2E;--alert-bg:#F7E7E2; }
+  :root[data-theme="dark"]{ --paper:#141210;--paper-2:#1C1815;--ink:#F1EADC;--ink-soft:#C9BFAE;--taupe:#9A9082;--line:#33291F;--pine:#7FB093;--pine-deep:#A6C9B2;--gold:#E2AE56;--gold-soft:#E2AE56;--card:#211B15;--good:#7FB093;--alert:#E88C7D;--alert-bg:#3A1F1A; }
+
+  *{ box-sizing:border-box; }
+  body{ margin:0; background:var(--paper-2); color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    line-height:1.5; -webkit-font-smoothing:antialiased; }
+  .serif{ font-family:Georgia,"Times New Roman",serif; }
+
+  .phone{ max-width:min(1180px, 96vw); margin:0 auto; height:100vh; background:var(--paper);
+    display:flex; flex-direction:column; box-shadow:0 0 60px -20px rgba(0,0,0,.3); position:relative; }
+  @media (min-width:480px){ .phone{ margin:14px auto; height:calc(100vh - 28px); border-radius:24px; overflow:hidden; } }
+  .thread{ font-size:1.05rem; padding:22px 26px 10px; }
+  .row{ max-width:74%; }
+  .bub{ font-size:1.02rem; }
+  @media (min-width:900px){ .row{ max-width:64%; } }
+
+  .top{ padding:9px 16px; display:flex; align-items:center; gap:11px; border-bottom:1px solid var(--line); background:var(--paper); flex:none; }
+  .dot{ width:40px;height:40px;border-radius:50%;background:var(--pine);display:grid;place-items:center;flex:none; }
+  .dot svg{ width:22px;height:22px; }
+  .top .name{ font-weight:800; letter-spacing:-.01em; line-height:1.1; }
+  .top .status{ font-size:.76rem; color:var(--good); font-weight:700; display:flex; align-items:center; gap:5px; }
+  .top .status::before{ content:""; width:7px;height:7px;border-radius:50%;background:var(--good); }
+  .top .switch{ margin-left:auto; background:none; border:1px solid var(--line); color:var(--ink-soft); border-radius:999px;
+    font-size:.72rem; font-weight:700; padding:6px 11px; cursor:pointer; font-family:inherit; }
+
+  .vetbar{ background:color-mix(in srgb,var(--gold) 12%,transparent); color:var(--ink-soft);
+    font-size:.78rem; text-align:center; padding:7px 14px; border-bottom:1px solid var(--line); font-weight:600; flex:none; }
+  .vetbar b{ color:var(--ink); }
+
+  .thread{ flex:1; overflow-y:auto; padding:18px 16px 8px; display:flex; flex-direction:column; gap:12px; }
+  .row{ display:flex; gap:9px; max-width:88%; }
+  .row.me{ align-self:flex-end; flex-direction:row-reverse; }
+  .av{ width:30px;height:30px;border-radius:50%;flex:none;display:grid;place-items:center;font-size:.9rem;font-weight:800; }
+  .av.wag{ background:var(--pine); color:#F5F0E6; }
+  :root[data-theme="dark"] .av.wag{ color:#141210; }
+  @media (prefers-color-scheme:dark){ .av.wag{ color:#141210; } }
+  .av.me{ background:var(--gold-soft); color:#231a0c; }
+  .bub{ padding:11px 14px; border-radius:16px; font-size:.95rem; }
+  .row.wag .bub{ background:var(--card); border:1px solid var(--line); border-bottom-left-radius:5px; box-shadow:var(--shadow); }
+  .row.me .bub{ background:var(--pine); color:#F5F0E6; border-bottom-right-radius:5px; }
+  :root[data-theme="dark"] .row.me .bub{ color:#141210; }
+  @media (prefers-color-scheme:dark){ .row.me .bub{ color:#141210; } }
+  .bub p{ margin:0; } .bub p+p{ margin-top:8px; }
+  .bub a{ color:var(--alert); font-weight:700; }
+  .bub .cursor{ display:inline-block; width:7px; height:1.05em; background:var(--taupe); vertical-align:-2px; animation:blink 1s steps(2) infinite; margin-left:1px; border-radius:1px; }
+  @keyframes blink{ 50%{ opacity:0; } }
+
+  .chips{ display:flex; gap:8px; overflow-x:auto; padding:10px 16px; border-top:1px solid var(--line); flex:none; }
+  .chip{ flex:none; background:var(--card); border:1.5px solid var(--line); color:var(--ink);
+    border-radius:999px; padding:8px 14px; font-size:.84rem; font-weight:700; cursor:pointer; font-family:inherit; white-space:nowrap; }
+  .chip:active{ transform:scale(.97); }
+  .chip:focus-visible,.send:focus-visible{ outline:3px solid var(--gold); outline-offset:2px; }
+
+  .compose{ display:flex; align-items:center; gap:10px; padding:10px 14px calc(10px + env(safe-area-inset-bottom)); border-top:1px solid var(--line); background:var(--paper); flex:none; }
+  .compose input{ flex:1; background:var(--card); border:1.5px solid var(--line); border-radius:999px; padding:12px 16px;
+    color:var(--ink); font-size:.95rem; font-family:inherit; outline:none; }
+  .compose input:focus{ border-color:var(--gold); }
+  .send{ width:44px;height:44px;border-radius:50%;background:var(--gold);border:none;display:grid;place-items:center;cursor:pointer;flex:none; }
+  .send:disabled{ opacity:.5; cursor:default; }
+  .send svg{ width:20px;height:20px;color:#231a0c; }
+
+  .wagbar{ display:flex; align-items:center; justify-content:center; gap:14px; flex-wrap:wrap;
+    padding:11px 16px; background:var(--pine-deep); color:var(--paper); text-decoration:none; flex:none; }
+  :root[data-theme="dark"] .wagbar{ background:var(--pine); color:#141210; }
+  @media (prefers-color-scheme:dark){ .wagbar{ background:var(--pine); color:#141210; } }
+  .wagbar .msg{ font-family:Georgia,serif; font-size:.98rem; font-weight:700; }
+  .wagbar .go{ background:var(--gold); color:#231a0c; font-weight:800; padding:7px 15px; border-radius:9px; font-size:.85rem; white-space:nowrap; }
+  /* QA tester name + feedback widget */
+  .qa-name{ margin-bottom:16px; }
+  .qa-name label{ display:block; font-size:.82rem; font-weight:700; margin-bottom:5px; }
+  .qa-name label span{ color:var(--taupe); font-weight:600; }
+  .qa-name input{ width:100%; padding:11px 14px; border:1.5px solid var(--line); border-radius:12px; background:var(--card); color:var(--ink); font-size:.95rem; font-family:inherit; outline:none; }
+  .qa-name input:focus{ border-color:var(--gold); }
+  .fbrow{ display:flex; align-items:center; gap:8px; margin-top:9px; font-size:.82rem; color:var(--taupe); flex-wrap:wrap; }
+  .fbrow button{ background:var(--paper); border:1px solid var(--line); border-radius:8px; padding:3px 9px; cursor:pointer; font-family:inherit; font-size:.92rem; color:var(--ink); }
+  .fbrow button:hover{ border-color:var(--gold); }
+  .fbrow .done{ color:var(--good); font-weight:700; }
+  .fbnote{ display:flex; gap:6px; margin-top:8px; }
+  .fbnote input{ flex:1; padding:7px 11px; border:1.5px solid var(--line); border-radius:10px; background:var(--paper); color:var(--ink); font-family:inherit; font-size:.88rem; outline:none; }
+  .fbnote input:focus{ border-color:var(--gold); }
+  .fbnote button{ background:var(--gold); color:#231a0c; border:none; border-radius:9px; padding:0 13px; font-weight:800; cursor:pointer; font-family:inherit; }
+
+  /* resident picker overlay */
+  .picker{ position:absolute; inset:0; background:var(--paper); z-index:40; display:flex; flex-direction:column; padding:22px 20px; overflow-y:auto; }
+  .picker h2{ font-family:Georgia,serif; font-size:1.4rem; margin:0 0 4px; }
+  .picker .sub{ color:var(--ink-soft); font-size:.9rem; margin-bottom:18px; }
+  .picker .who{ display:flex; align-items:center; gap:13px; width:100%; text-align:left; background:var(--card);
+    border:1.5px solid var(--line); border-radius:16px; padding:13px 15px; margin-bottom:11px; cursor:pointer; font-family:inherit; color:var(--ink); }
+  .picker .who:hover{ border-color:var(--gold); }
+  .picker .who .pic{ width:44px;height:44px;border-radius:50%;background:var(--pine);color:#F5F0E6;display:grid;place-items:center;font-weight:800;flex:none; }
+  :root[data-theme="dark"] .picker .who .pic{ color:#141210; }
+  .picker .who .t{ font-weight:800; display:block; }
+  .picker .who .d{ font-size:.84rem; color:var(--ink-soft); margin-top:2px; display:block; }
+  .picker .who.newcust .pic{ background:var(--gold); color:#231a0c; font-size:1.2rem; }
+  .picker .note{ margin-top:auto; padding-top:16px; font-size:.76rem; color:var(--taupe); text-align:center; }
+</style>
+</head>
+<body>
+<div class="phone">
+  <!-- resident picker (demo: choose whose dog you are) -->
+  <div class="picker" id="picker">
+    <h2>Ask Wag 🐾</h2>
+    <div class="sub">Pick a resident to see how Wag already knows their dog. (Demo — every dog has a real history.)</div>
+    <div class="qa-name">
+      <label>Your name <span>· QA: we log test sessions for coverage</span></label>
+      <input id="testerName" placeholder="e.g. John" autocomplete="off">
+    </div>
+    <div id="whoList"></div>
+    <div class="note">Ask Wag is a warm dog-care assistant — not a vet. Powered by Claude.</div>
+  </div>
+
+  <div class="top">
+    <span class="dot"><svg viewBox="0 0 24 24" fill="#F5F0E6"><path d="M6 5 Q4 9 7 11 Q9 9 8.5 6 Z"/><path d="M18 5 Q20 9 17 11 Q15 9 15.5 6 Z"/><circle cx="9.5" cy="12.4" r="1.4"/><circle cx="14.5" cy="12.4" r="1.4"/><ellipse cx="12" cy="15.8" rx="2" ry="1.5"/><path d="M12 17.2 Q10.2 18.6 8.8 17.9" fill="none" stroke="#F5F0E6" stroke-width="1" stroke-linecap="round"/><path d="M12 17.2 Q13.8 18.6 15.2 17.9" fill="none" stroke="#F5F0E6" stroke-width="1" stroke-linecap="round"/></svg></span>
+    <div><div class="name">Ask Wag</div><div class="status">Here for you, any hour</div></div>
+    <button class="switch" id="switchBtn" title="Switch resident">↺ switch</button>
+  </div>
+
+  <div class="vetbar">🐾 I'm your dog-care buddy — <b>not a vet.</b> For anything medical, always check with yours.</div>
+
+  <div class="thread" id="thread"></div>
+
+  <div class="chips" id="chips"></div>
+
+  <form class="compose" id="composeForm" autocomplete="off">
+    <input id="input" placeholder="Ask about your dog…" aria-label="Message" />
+    <button class="send" id="sendBtn" type="submit" aria-label="Send">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4 20-7z"/></svg>
+    </button>
+  </form>
+
+  <a class="wagbar" id="wagLink" href="https://wagthedog.example" target="_blank" rel="noopener"><span class="msg">Love having someone in your corner? 🐾</span><span class="go">See Wag the Dog →</span></a>
+</div>
+
+<script>
+// ── config ──────────────────────────────────────────────────────────────
+// Local dev: `npx wrangler dev` serves the Worker at http://localhost:8787
+// Production: replace with your deployed Worker URL (e.g. https://ask-wag-api.<sub>.workers.dev)
+const API_URL = "https://ask-wag-api.jeff-423.workers.dev";
+const WAG_SITE = "https://wagthedog.org"; // live Wag homepage
+document.getElementById("wagLink").href = WAG_SITE;
+
+// ── seeded residents (demo history so Wag already "knows" each dog) ──────
+const RESIDENTS = [
+  { id:"margaret", name:"Margaret", init:"M", dog:"Daisy", line:"12-year-old beagle",
+    profile:"The resident is Margaret. Her dog is Daisy, a 12-year-old beagle who is slowing down with age — some arthritis in the hips, sleeps more, and has been a slightly pickier eater the past few weeks. Daisy is sweet and food-motivated normally. Margaret is a bit anxious about Daisy getting older.",
+    greeting:"Hi Margaret 🐾 I'm Wag. I've got sweet Daisy on file — your 12-year-old beagle who's been slowing down a little lately. Ask me anything about her, or tap a topic below to start." },
+  { id:"harold", name:"Harold", init:"H", dog:"Rex", line:"5-year-old German Shepherd",
+    profile:"The resident is Harold. His dog is Rex, a strong, healthy 5-year-old German Shepherd who pulls hard on the leash and can be a handful on walks. Rex just started with a new Wag walker this week. Harold wants Rex to be easier to handle.",
+    greeting:"Hey Harold! I'm Wag. I know Rex — your strong 5-year-old shepherd who likes to pull on the leash. Ask me anything, or tap a topic below and we'll dig in." },
+  { id:"eleanor", name:"Eleanor", init:"E", dog:"Biscuit", line:"3-year-old rescue terrier",
+    profile:"The resident is Eleanor. Her dog is Biscuit, a 3-year-old terrier-mix rescue who is very shy and nervous with strangers and takes time to warm up to new people, including new walkers. Biscuit is loving once he trusts you. Eleanor worries about Biscuit being scared.",
+    greeting:"Hi Eleanor 🐾 I'm Wag. I've got shy little Biscuit on file — he takes his time warming up to new folks. Ask me anything about him, or tap a topic below." },
+  { id:"frank", name:"Frank", init:"F", dog:"Duke", line:"8-year-old Labrador",
+    profile:"The resident is Frank. His dog is Duke, an 8-year-old Labrador who is carrying some extra weight and could use more exercise and portion control. Duke is very food-motivated and will eat anything. Frank loves spoiling Duke with treats.",
+    greeting:"Hey Frank! I'm Wag. I know big Duke — your happy, food-loving 8-year-old Lab. Ask me anything, or tap a topic below." },
+  { id:"dorothy", name:"Dorothy", init:"D", dog:"Pepper", line:"10-year-old poodle",
+    profile:"The resident is Dorothy. Her dog is Pepper, a 10-year-old poodle who is anxious and barky, especially since Dorothy recently moved into the community. Pepper is still adjusting to the new place and new sounds. Dorothy wants Pepper to feel calmer and more at home.",
+    greeting:"Hi Dorothy 🐾 I'm Wag. I've got Pepper on file — your 10-year-old poodle who's still settling into the new place. Ask me anything about her, or tap a topic to start." },
+  { id:"sam", name:"Sam", init:"S", dog:"Cooper", line:"2-year-old Australian Shepherd",
+    profile:"The resident is Sam. His dog is Cooper, a 2-year-old Australian Shepherd — young, high-energy, very smart, and a champion counter-surfer who gets into things he shouldn't. Cooper needs lots of mental and physical exercise. Sam has his hands full keeping up with him.",
+    greeting:"Hey Sam! I'm Wag. I know Cooper — your clever, high-energy 2-year-old Aussie (and champion counter-surfer 😄). Ask me anything, or tap a topic below." },
+  { id:"new", name:"New here?", init:"+", dog:"", line:"Curious about Wag? Start here",
+    profile:"This is a NEW, prospective customer — not signed up yet, no dog on file. Likely a senior resident or a family member exploring the Wag the Dog dog-walking service for the first time. Be extra warm, patient, and welcoming — no jargon, no pressure. Help them understand how walks work, the pricing (about $20 per walk on a simple subscription, scheduled or paused anytime in the app, walkers escorted to the door by staff), and how to sign up. If they mention their dog, get to know it warmly. Reassure them the walkers are caring, trained, background-checked team members.",
+    greeting:"Hi there, welcome! 🐾 I'm Wag. Thinking about walks for your pup, or just curious how we work? I'm happy to walk you through everything — how it works, what it costs, signing up — no pressure at all. Ask me anything, or tap a topic below." },
+];
+
+const CHIPS = {
+  margaret:["Daisy's eating less","Senior dog comfort","Is she in pain?"],
+  harold:["Leash pulling help","New walker tips","Rex won't settle"],
+  eleanor:["Biscuit's shy with the walker","Help him feel safe","Building trust"],
+  frank:["How much should Duke eat?","More exercise ideas","Healthy treats?"],
+  dorothy:["Pepper won't stop barking","Calming an anxious dog","Helping her adjust"],
+  sam:["Cooper keeps counter-surfing","Ways to burn his energy","Keeping a smart pup busy"],
+  new:["How much does it cost?","How does it work?","How do I sign up?","Are the walkers safe?"],
+  _default:["New walker jitters?","Senior dog comfort","How much to feed?","How walks work"],
+};
+
+// ── state ───────────────────────────────────────────────────────────────
+let current = null;      // current resident
+let messages = [];       // [{role, content}]
+let busy = false;
+let testerName = "";     // QA tester (transparent — logged for coverage)
+
+const $ = id => document.getElementById(id);
+const thread = $("thread"), chipsEl = $("chips"), input = $("input"), sendBtn = $("sendBtn");
+
+// ── render helpers ──────────────────────────────────────────────────────
+function esc(s){ return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+// make phone numbers tappable (nice for the emergency case) + paragraphs
+function renderText(t){
+  return esc(t)
+    .replace(/(\(?\d{3}\)?[\s.-]?\d{3}[\s.-]?\d{4})/g, '<a href="tel:$1">$1</a>')
+    .split(/\n{2,}/).map(p => "<p>"+p.replace(/\n/g,"<br>")+"</p>").join("");
+}
+function addRow(who, html){
+  const row = document.createElement("div");
+  row.className = "row " + who;
+  row.innerHTML = `<div class="av ${who}">${who==="wag"?"W":"M"}</div><div class="bub">${html}</div>`;
+  thread.appendChild(row);
+  thread.scrollTop = thread.scrollHeight;
+  return row.querySelector(".bub");
+}
+function renderChips(){
+  const list = (current && CHIPS[current.id]) || CHIPS._default;
+  chipsEl.innerHTML = "";
+  list.forEach(c => {
+    const b = document.createElement("button");
+    b.className = "chip"; b.textContent = c; b.type = "button";
+    b.onclick = () => { if(!busy){ send(c); } };
+    chipsEl.appendChild(b);
+  });
+}
+
+// ── conversation ────────────────────────────────────────────────────────
+async function send(text){
+  text = (text || "").trim();
+  if(!text || busy) return;
+  busy = true; sendBtn.disabled = true; input.value = "";
+  addRow("me", renderText(text));
+  messages.push({ role:"user", content:text });
+
+  const bub = addRow("wag", '<span class="cursor"></span>');
+  let acc = "";
+  try{
+    const resp = await fetch(API_URL, {
+      method:"POST", headers:{ "content-type":"application/json" },
+      body: JSON.stringify({ profile: current ? current.profile : "", messages, tester: testerName, resident: current ? current.id : "" }),
+    });
+    if(!resp.ok || !resp.body){
+      const e = await resp.json().catch(()=>({}));
+      throw new Error(e.detail || e.error || ("HTTP "+resp.status));
+    }
+    const reader = resp.body.getReader(); const dec = new TextDecoder(); let buf = "";
+    while(true){
+      const { done, value } = await reader.read(); if(done) break;
+      buf += dec.decode(value, { stream:true });
+      const lines = buf.split("\n"); buf = lines.pop();
+      for(const line of lines){
+        if(!line.startsWith("data:")) continue;
+        try{
+          const j = JSON.parse(line.slice(5).trim());
+          if(j.type === "content_block_delta" && j.delta && j.delta.text){
+            acc += j.delta.text;
+            bub.innerHTML = renderText(acc) + '<span class="cursor"></span>';
+            thread.scrollTop = thread.scrollHeight;
+          }
+        }catch{}
+      }
+    }
+    bub.innerHTML = renderText(acc || "…");
+    messages.push({ role:"assistant", content: acc });
+    if (acc) addFeedback(bub, acc);
+  }catch(err){
+    bub.innerHTML = renderText("Sorry — I couldn't reach the help desk just now. Please try again in a moment. (" + err.message + ")");
+  }finally{
+    busy = false; sendBtn.disabled = false; input.focus();
+  }
+}
+
+// ── feedback (transparent QA) ───────────────────────────────────────────
+function sendFeedback(rating, note, context){
+  fetch(API_URL + "/feedback", {
+    method:"POST", headers:{ "content-type":"application/json" },
+    body: JSON.stringify({ tester: testerName || "anon", rating: rating || null, note: note || "", resident: current ? current.id : "", context: (context || "").slice(0, 900) }),
+  }).catch(()=>{});
+}
+function addFeedback(bub, context){
+  const row = document.createElement("div");
+  row.className = "fbrow";
+  row.innerHTML = '<span>Helpful?</span><button type="button" data-r="up">👍</button><button type="button" data-r="down">👎</button><button type="button" data-note>💬 note</button>';
+  bub.appendChild(row);
+  row.querySelectorAll("button[data-r]").forEach(b => {
+    b.onclick = () => { sendFeedback(b.dataset.r, "", context); row.innerHTML = '<span class="done">Thanks — logged 🐾</span>'; };
+  });
+  row.querySelector("button[data-note]").onclick = () => {
+    const nb = document.createElement("div"); nb.className = "fbnote";
+    nb.innerHTML = '<input placeholder="What worked, or didn\'t?"><button type="button">Send</button>';
+    row.replaceWith(nb);
+    const inp = nb.querySelector("input"); inp.focus();
+    const submit = () => { const v = inp.value.trim(); if (v) sendFeedback("", v, context); nb.innerHTML = '<span class="done">Thanks — logged 🐾</span>'; };
+    nb.querySelector("button").onclick = submit;
+    inp.addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); submit(); } });
+  };
+}
+
+// ── resident selection ──────────────────────────────────────────────────
+function pickResident(r){
+  const t = $("testerName"); if (t && t.value.trim()) testerName = t.value.trim();
+  current = r; messages = []; thread.innerHTML = "";
+  $("picker").style.display = "none";
+  addRow("wag", '<p class="serif">' + esc(r.greeting) + '</p>');
+  renderChips();
+  input.focus();
+}
+function buildPicker(){
+  const list = $("whoList"); list.innerHTML = "";
+  RESIDENTS.forEach(r => {
+    const b = document.createElement("button");
+    b.className = "who" + (r.id === "new" ? " newcust" : ""); b.type = "button";
+    const title = r.dog ? `${esc(r.name)} &amp; ${esc(r.dog)}` : esc(r.name);
+    b.innerHTML = `<span class="pic">${r.init}</span><span><span class="t">${title}</span><span class="d">${esc(r.line)}</span></span>`;
+    b.onclick = () => pickResident(r);
+    list.appendChild(b);
+  });
+}
+
+$("composeForm").addEventListener("submit", e => { e.preventDefault(); send(input.value); });
+$("switchBtn").addEventListener("click", () => { $("picker").style.display = "flex"; });
+buildPicker();
+renderChips();
+</script>
+</body>
+</html>
