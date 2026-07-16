@@ -162,6 +162,18 @@
   footer .wrap { display: flex; flex-wrap: wrap; gap: 10px 24px; align-items: center; justify-content: space-between; }
   .pre { display: inline-flex; align-items: center; gap: 8px; background: var(--paper-2); border: 1px solid var(--line); color: var(--ink-soft); padding: 5px 12px; border-radius: 999px; font-size: .78rem; font-weight: 600; }
 
+  /* announcement bar */
+  .announce { background:#22392C; color:#EAF2ED; font-size:.82rem; font-weight:600; letter-spacing:.01em; }
+  .announce .wrap { display:flex; align-items:center; justify-content:center; gap:9px; min-height:40px; padding-top:7px; padding-bottom:7px; text-align:center; }
+  .announce b { color:#E7C583; font-weight:800; }
+
+  /* chat-with-wag accent button + live note */
+  .btn-wag { border-color: var(--gold); color: var(--ink); background: var(--card); }
+  .cta-note { margin-top: 15px; font-size: .86rem; color: var(--taupe); display:flex; align-items:center; gap:8px; }
+  .cta-note a { font-weight:700; }
+  .live-dot { width:8px; height:8px; border-radius:50%; background:#3AAE6B; animation: pulse 2s infinite; flex:none; }
+  @keyframes pulse { 0%{box-shadow:0 0 0 0 rgba(58,174,107,.55)} 70%{box-shadow:0 0 0 7px rgba(58,174,107,0)} 100%{box-shadow:0 0 0 0 rgba(58,174,107,0)} }
+
   @media (max-width: 780px) {
     .trio { grid-template-columns: 1fr; }
     .trust-grid { grid-template-columns: 1fr; }
@@ -172,8 +184,13 @@
   @media (prefers-reduced-motion: reduce) {
     html { scroll-behavior: auto; }
     .btn { transition: none; }
+    .live-dot { animation: none; }
   }
 </style>
+
+<div class="announce">
+  <div class="wrap"><span aria-hidden="true">🐾</span> Now onboarding our first Raleigh–Triangle communities — <b>launching 2026</b></div>
+</div>
 
 <nav class="nav">
   <div class="wrap">
@@ -199,7 +216,9 @@
     <div class="cta-row">
       <a class="btn btn-primary" href="#contact">For communities &amp; families</a>
       <a class="btn btn-ghost" href="#how">See how it works</a>
+      <a class="btn btn-wag" href="https://jeffreygchase.dev/ask-wag.html">🐾 Chat with Wag</a>
     </div>
+    <p class="cta-note"><span class="live-dot" aria-hidden="true"></span> Meet <a href="https://jeffreygchase.dev/ask-wag.html">Wag</a>, our AI care assistant — live now, ask it anything about your dog.</p>
   </div>
 </header>
 
@@ -355,7 +374,7 @@
           Chase Energy
         </span>
       </a>
-      <span class="pre">First-draft site</span>
+      <span class="pre">Pilot launching 2026</span>
     </div>
   </div>
 </footer>
